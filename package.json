@@ -1,0 +1,46 @@
+{
+    "name": "quark",
+    "version": "1.0.0",
+    "description": "A lightweight Electron update server for all your apps.",
+    "type": "module",
+    "main": "dist/index.js",
+    "exports": {
+        ".": {
+            "import": "./dist/index.js",
+            "types": "./dist/index.d.ts"
+        }
+    },
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "watch": "tsc --watch src/index.ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "test": "npm run lint"
+    },
+    "keywords": [
+        "electron",
+        "updates",
+        "server",
+        "releases"
+    ],
+    "author": "iamtraction",
+    "license": "MIT",
+    "dependencies": {
+        "@octokit/rest": "^21.1.1",
+        "express": "^5.1.0",
+        "semver": "^7.7.2",
+        "undici": "^7.9.0",
+        "winston": "^3.17.0",
+        "yaml": "^2.8.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.27.0",
+        "@types/express": "^5.0.2",
+        "@types/node": "^22.15.18",
+        "@types/semver": "^7.7.0",
+        "eslint": "^9.27.0",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.32.1"
+    }
+}
