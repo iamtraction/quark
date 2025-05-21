@@ -1,0 +1,27 @@
+# Quark Configuration
+# Copy this file to config.yaml and modify as needed
+
+# [OPTIONAL] Global GitHub token
+# github:
+#   token: your-github-token
+
+# Application configurations
+applications:
+  # Application ID used in URLs (e.g., /myapp/download)
+  my-app:
+    # GitHub repository details
+    repository:
+      owner: your-username
+      name: your-repo
+    # [OPTIONAL] Set to true if this is a private repository
+    # private: false
+    # [OPTIONAL] App-specific GitHub token (overrides global token)
+    # token: your-app-specific-token
+
+  # Example of another application
+  another-app:
+    repository:
+      owner: your-org
+      name: another-repo
+    private: true
+    token: your-private-repo-token
