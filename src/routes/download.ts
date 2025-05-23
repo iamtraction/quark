@@ -5,20 +5,19 @@ import { fetch } from "undici";
 import { loadApplicationConfig, loadConfig } from "../services/config.js";
 import { GitHubService } from "../services/github.js";
 import { AppError } from "../middlewares/errorHandler.js";
-import { getPreferredExtension, resolvePlatform } from "../utils/platform.js";
+import { getPreferredExtension, resolvePlatform, resolvePlatformFromUserAgent } from "../utils/platform.js";
 
 const router = Router({ mergeParams: true });
 
-router.get("/:platform", async (req: Request, res: Response) => {
+const handleDownload = async (req: Request, res: Response, platform: string | null) => {
+    if (!platform) {
+        throw new AppError(400, "The platform is not supported.");
+    }
+
     const qs = url.parse(req.url, true).query;
     const isUpdate = qs?.update?.toString().toLowerCase() === "true";
     const format = qs?.format?.toString().toLowerCase();
-    const platform = resolvePlatform(req.params.platform);
     const extension = format ? "." + format : getPreferredExtension(platform, isUpdate);
-
-    if (!platform) {
-        throw new AppError(400, `The platform ${ platform } is not supported.`);
-    }
 
     const config = await loadConfig();
     const appConfig = await loadApplicationConfig(req.params.application);
@@ -39,22 +38,38 @@ router.get("/:platform", async (req: Request, res: Response) => {
     if (isPrivateDownload) {
         const assetUrl = targetAsset.url;
 
-        fetch(assetUrl, {
-            headers: {
-                accept: "application/octet-stream",
-                authorization: `token ${ config.github?.token || appConfig.token }`,
-            },
-            redirect: "manual",
-        }).then(assetRes => {
-            res.setHeader("Location", assetRes.headers.get("Location") || "");
-            res.status(302).end();
-        });
-        return;
+        try {
+            const assetRes = await fetch(assetUrl, {
+                headers: {
+                    accept: "application/octet-stream",
+                    authorization: `token ${ config.github?.token || appConfig.token }`,
+                },
+                redirect: "manual",
+            });
+
+            const location = assetRes.headers.get("location");
+            if (!location) {
+                throw new AppError(500, "Failed to get the download location.");
+            }
+
+            res.setHeader("location", location).status(302).end();
+            return;
+        } catch (error) {
+            throw new AppError(500, "Failed to get the release asset.");
+        }
     }
 
-    res.writeHead(302, {
-        location: targetAsset.downloadUrl,
-    }).end();
+    res.setHeader("location", targetAsset.downloadUrl).status(302).end();
+}
+
+router.get("/", async (req: Request, res: Response) => {
+    const platform = resolvePlatformFromUserAgent(req.useragent);
+    await handleDownload(req, res, platform);
+});
+
+router.get("/:platform", async (req: Request, res: Response) => {
+    const platform = resolvePlatform(req.params.platform);
+    await handleDownload(req, res, platform);
 });
 
 export default router;
