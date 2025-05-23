@@ -1,4 +1,5 @@
 import path from "node:path";
+import { Details as UserAgentDetails } from "express-useragent";
 
 const WINDOWS_EXTENSIONS = [
     ".exe",      // Squirrel.Windows
@@ -37,7 +38,7 @@ export const getFilePlatform = (filename: string) => {
     return null;
 };
 
-export const getPreferredExtension = (platform: string, isUpdate?: boolean) => {
+export const getPreferredExtension = (platform: string | null, isUpdate?: boolean) => {
     switch (platform) {
     case "darwin":
         return isUpdate ? ".zip" : ".dmg";
@@ -59,7 +60,16 @@ export const resolvePlatform = (platform: string) => {
     case "win":
     case "windows":
         return "win32";
+    case "linux":
+        return "linux";
     default:
-        return platform;
+        return null;
     }
+};
+
+export const resolvePlatformFromUserAgent = (ua?: UserAgentDetails) => {
+    if (ua?.isMac) return "darwin";
+    if (ua?.isLinux) return "linux";
+    if (ua?.isWindows) return "win32";
+    return null;
 };
