@@ -1,4 +1,5 @@
 import express from "express";
+import ua from "express-useragent";
 
 import { setupErrorHandling } from "./middlewares/errorHandler.js";
 import { logger } from "./utils/logger.js";
@@ -11,6 +12,9 @@ async function main() {
     const app = express();
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
     const host = process.env.HOST || "0.0.0.0";
+
+    // setup middlewares
+    app.use(ua.express());
 
     // setup routes
     app.use("/:application", overviewRouter);
